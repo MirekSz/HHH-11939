@@ -55,35 +55,6 @@ public class ORMStandaloneTestCase {
 		Session session = sf.openSession();
 
 		Transaction beginTransaction = session.beginTransaction();
-		SaleDocument saleDocument = new SaleDocument();
-		session.persist(saleDocument);
-
-		OperationRegistrySubject correctionSubject = new OperationRegistrySubject();
-		session.persist(correctionSubject);
-
-		session.flush(); // of course this provoke exception but it also could be some hql which flushes queue
-
-		OperationRegistrySubject saleDocSubject = new OperationRegistrySubject();
-		session.persist(saleDocSubject);
-
-		SaleDocumentItem saleDocumentItem = new SaleDocumentItem();
-		saleDocumentItem.setSaleDocument(saleDocument);
-		saleDocumentItem.setSubject(saleDocSubject);
-		session.persist(saleDocumentItem);
-
-		SaleDocument correction = new SaleDocument();
-		correction.setSubject(correctionSubject);
-		session.persist(correction);
-
-		beginTransaction.commit(); // FK_KEY VIOLATION, set
-									// hibernate.order_inserts = false and works
-	}
-
-	@Test
-	public void hhh11939Test2() throws Exception {
-		Session session = sf.openSession();
-
-		Transaction beginTransaction = session.beginTransaction();
 
 		SaleDocument saleDocument = new SaleDocument();
 		session.persist(saleDocument);
@@ -106,6 +77,35 @@ public class ORMStandaloneTestCase {
 		SaleDocument correction = new SaleDocument();
 		correction.setSubject(correctionSubject);
 		correction.setMain(saleDocumentItem);
+		session.persist(correction);
+
+		beginTransaction.commit(); // FK_KEY VIOLATION, set
+									// hibernate.order_inserts = false and works
+	}
+
+	@Test // ONLY FAILS IN NEWEST 5.2.11 - SNAPSHOT
+	public void hhh11939Test2() throws Exception {
+		Session session = sf.openSession();
+
+		Transaction beginTransaction = session.beginTransaction();
+		SaleDocument saleDocument = new SaleDocument();
+		session.persist(saleDocument);
+
+		OperationRegistrySubject correctionSubject = new OperationRegistrySubject();
+		session.persist(correctionSubject);
+
+		session.flush(); // of course this provoke exception but it also could be some hql which flushes queue
+
+		OperationRegistrySubject saleDocSubject = new OperationRegistrySubject();
+		session.persist(saleDocSubject);
+
+		SaleDocumentItem saleDocumentItem = new SaleDocumentItem();
+		saleDocumentItem.setSaleDocument(saleDocument);
+		saleDocumentItem.setSubject(saleDocSubject);
+		session.persist(saleDocumentItem);
+
+		SaleDocument correction = new SaleDocument();
+		correction.setSubject(correctionSubject);
 		session.persist(correction);
 
 		beginTransaction.commit(); // FK_KEY VIOLATION, set
