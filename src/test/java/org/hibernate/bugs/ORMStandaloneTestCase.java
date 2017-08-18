@@ -60,7 +60,7 @@ public class ORMStandaloneTestCase {
 		OperationRegistrySubject correctionSubject = new OperationRegistrySubject();
 		session.persist(correctionSubject);
 
-		session.flush();
+		session.flush(); // of course this provoke exception but it also could be some hql which flushes queue
 
 		OperationRegistrySubject saleDocSubject = new OperationRegistrySubject();
 		session.persist(saleDocSubject);
