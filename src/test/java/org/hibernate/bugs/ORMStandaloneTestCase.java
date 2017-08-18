@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -72,6 +73,39 @@ public class ORMStandaloneTestCase {
 
 		SaleDocument correction = new SaleDocument();
 		correction.setSubject(correctionSubject);
+		session.persist(correction);
+
+		beginTransaction.commit(); // FK_KEY VIOLATION, set
+									// hibernate.order_inserts = false and works
+	}
+
+	@Test
+	public void hhh11939Test2() throws Exception {
+		Session session = sf.openSession();
+
+		Transaction beginTransaction = session.beginTransaction();
+
+		SaleDocument saleDocument = new SaleDocument();
+		session.persist(saleDocument);
+
+		OperationRegistrySubject correctionSubject = new OperationRegistrySubject();
+		session.persist(correctionSubject);
+
+		SaleDocumentItem saleDocumentItem = new SaleDocumentItem();
+		saleDocumentItem.setSaleDocument(saleDocument);
+		session.persist(saleDocumentItem);
+
+		OperationRegistrySubject saleDocSubject = new OperationRegistrySubject();
+		session.persist(saleDocSubject);
+
+		SaleDocumentItem saleDocumentItem2 = new SaleDocumentItem();
+		saleDocumentItem2.setSaleDocument(saleDocument);
+		saleDocumentItem2.setSubject(saleDocSubject);
+		session.persist(saleDocumentItem2);
+
+		SaleDocument correction = new SaleDocument();
+		correction.setSubject(correctionSubject);
+		correction.setMain(saleDocumentItem);
 		session.persist(correction);
 
 		beginTransaction.commit(); // FK_KEY VIOLATION, set
@@ -149,6 +183,14 @@ public class ORMStandaloneTestCase {
 		@ManyToOne(fetch = FetchType.LAZY)
 		private OperationRegistrySubject subject;
 
+		@JoinColumn(name = "ID_SALE_DOCUMENT_ITEM", nullable = true)
+		@ManyToOne(fetch = FetchType.LAZY)
+		private SaleDocumentItem main;
+
+		@JoinColumn(name = "ID_SALE_DOCUMENT", updatable = false)
+		@OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
+		private final Set<SaleDocumentItem> itemSet = new HashSet<>();
+
 		public Long getId() {
 			return id;
 		}
@@ -200,6 +242,18 @@ public class ORMStandaloneTestCase {
 
 		public void setSubject(final OperationRegistrySubject subject) {
 			this.subject = subject;
+		}
+
+		public SaleDocumentItem getMain() {
+			return main;
+		}
+
+		public void setMain(final SaleDocumentItem main) {
+			this.main = main;
+		}
+
+		public Set<SaleDocumentItem> getItemSet() {
+			return itemSet;
 		}
 	}
 
